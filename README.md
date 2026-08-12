@@ -1,20 +1,33 @@
 # mitc
 
-`mitc` is a small command-line tool that creates an MIT License file. It uses the current year by default and remembers an optional default copyright holder.
+[![CI](https://github.com/ogatomo21/mitc/actions/workflows/ci.yml/badge.svg)](https://github.com/ogatomo21/mitc/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-> 日本語の説明はこのREADMEに続きます。
+`mitc` is a tiny, native command-line tool for creating the canonical MIT License. It uses the current year by default and can remember your copyright holder name.
+
+> 日本語の説明は[こちら](#日本語)です。
+
+## Features
+
+- Native standalone binaries for Windows, Linux, and macOS — no additional runtime required.
+- Writes a `LICENSE` file by default and asks before overwriting one.
+- Supports a saved default copyright holder, as well as one-off overrides.
+- Prints the license to standard output for scripts and pipelines.
 
 ## Install
 
-Download an asset from GitHub Releases.
+Download the appropriate file from [GitHub Releases](https://github.com/ogatomo21/mitc/releases).
 
-- `mitc-win-x64.exe`: self-contained Windows x64 executable.
-- `mitc-win-x86.exe`: self-contained Windows x86 executable.
-- `mitc-win-setup.exe`: Windows installer for x86, x64, and Arm64. Requires the .NET 10 Runtime.
-- `mitc-linux-x64`: self-contained Linux x64 executable.
-- `mitc-macos-x64` / `mitc-macos-arm64`: self-contained macOS executables.
+| File | Platform | Notes |
+| --- | --- | --- |
+| `mitc-win-setup.exe` | Windows x64 | Recommended. Adds `mitc` to the current user's `PATH`; Japanese or English is selected automatically. |
+| `mitc-win-x64.exe` | Windows x64 | Portable executable. |
+| `mitc-win-x86.exe` | Windows x86 | Portable executable. |
+| `mitc-linux-x64` | Linux x64 | Make executable with `chmod +x mitc-linux-x64`. |
+| `mitc-macos-x64` | macOS Intel | Make executable with `chmod +x mitc-macos-x64`. |
+| `mitc-macos-arm64` | macOS Apple silicon | Make executable with `chmod +x mitc-macos-arm64`. |
 
-The self-contained executables do not require a separate .NET Runtime installation.
+For a portable executable, rename it to `mitc` (or `mitc.exe` on Windows) and place it in a directory on your `PATH`.
 
 ## Usage
 
@@ -30,17 +43,21 @@ mitc [options]
 -v, --version          Show the version
 ```
 
-Running `mitc` creates `LICENSE` in the current directory. If the file already exists, only `y` confirms overwriting it.
-
 ```powershell
+# Create LICENSE using the current year and saved/default user.
 mitc
+
+# Create a license for one project without changing the saved user.
 mitc -y 2026 -u "Tomoya Ogawa"
-mitc -f LICENSE.txt
-mitc -p
+
+# Save the default copyright holder in ~/.mitc.toml.
 mitc --set-user "Tomoya Ogawa"
+
+# Print instead of writing a file.
+mitc -p
 ```
 
-The default user is `John Doe`. `--set-user` stores the value in `~/.mitc.toml` (or `%USERPROFILE%\.mitc.toml` on Windows).
+The default user is `John Doe`. `--set-user` saves the value to `~/.mitc.toml` (or `%USERPROFILE%\.mitc.toml` on Windows).
 
 ```toml
 user = "Tomoya Ogawa"
@@ -48,69 +65,76 @@ user = "Tomoya Ogawa"
 
 ## Development
 
-Requires the .NET 10 SDK.
+Go 1.26 or later is required.
 
 ```powershell
-dotnet build -c Release
-dotnet run -- --print -y 2026 -u "Test User"
+go build ./...
+go test ./...
+go vet ./...
+go run . -p -y 2026 -u "Test User"
 ```
 
-To build a self-contained Windows x64 executable:
+Build a Windows x64 binary and its installer:
 
 ```powershell
-dotnet publish -c Release -r win-x64 --self-contained true -o .\publish\win-x64
-```
-
-To build the Windows Any CPU installer, install NSIS and run:
-
-```powershell
-dotnet publish -c Release --self-contained false -p:PublishSingleFile=false -o .\publish-anycpu
+$env:CGO_ENABLED = '0'
+$env:GOOS = 'windows'
+$env:GOARCH = 'amd64'
+go build -trimpath -ldflags '-s -w -X main.version=v1.0' -o .\publish-win-x64\mitc.exe .
 makensis /DPRODUCT_VERSION=1.0 installer\mitc.nsi
 ```
 
 ## Releases
 
-Pushing a `v`-prefixed tag, such as `v1.0.0`, creates a GitHub Release and attaches all platform assets automatically. The workflow sets the Release title to `mitc v1.0.0` and uses `1.0.0` for .NET and NSIS product versions.
+Pushing a `v`-prefixed tag, such as `v1.0.0`, creates or updates the corresponding GitHub Release. Its title becomes `mitc v1.0.0` and the workflow attaches every platform binary and the Windows installer.
 
-See [CHANGELOG.md](CHANGELOG.md) for release history and [CONTRIBUTING.md](CONTRIBUTING.md) for contribution guidelines.
+See [CHANGELOG.md](CHANGELOG.md) for release history, [CONTRIBUTING.md](CONTRIBUTING.md) for contribution guidelines, and [LICENSE](LICENSE) for license terms.
 
 ---
 
 ## 日本語
 
-`mitc` はMIT Licenseを生成するC#製CLIツールです。現在年を既定で使用し、著作権者名の既定値も保存できます。
+`mitc` は、標準的なMIT Licenseを生成する小さなネイティブCLIツールです。既定では現在年を使い、著作権者名を保存できます。
+
+### 特長
+
+- Windows、Linux、macOS向けの単体バイナリ。追加ランタイムは不要です。
+- 既定で`LICENSE`へ保存し、既存ファイルは確認してから上書きします。
+- 著作権者名の保存と、その場限りの上書き指定に対応しています。
+- `--print`で標準出力へ出せるため、スクリプトからも利用できます。
 
 ### インストール
 
-GitHub Releasesから利用環境に合うファイルをダウンロードしてください。
+[GitHub Releases](https://github.com/ogatomo21/mitc/releases)から環境に合うファイルをダウンロードしてください。
 
-- `mitc-win-x64.exe`：Windows x64向け、.NET Runtime不要の単一EXE。
-- `mitc-win-x86.exe`：Windows x86向け、.NET Runtime不要の単一EXE。
-- `mitc-win-setup.exe`：Windows x86/x64/Arm64共通のセットアップ。 .NET 10 Runtimeが必要。
-- `mitc-linux-x64`：Linux x64向け、.NET Runtime不要の単一実行ファイル。
-- `mitc-macos-x64` / `mitc-macos-arm64`：macOS向け、.NET Runtime不要の単一実行ファイル。
+| ファイル | 対象 | 補足 |
+| --- | --- | --- |
+| `mitc-win-setup.exe` | Windows x64 | 推奨。`mitc`を現在のユーザーの`PATH`へ追加します。画面は日本語・英語を自動選択します。 |
+| `mitc-win-x64.exe` | Windows x64 | 持ち運び用EXEです。 |
+| `mitc-win-x86.exe` | Windows x86 | 持ち運び用EXEです。 |
+| `mitc-linux-x64` | Linux x64 | `chmod +x mitc-linux-x64`を実行してから使います。 |
+| `mitc-macos-x64` | Intel Mac | `chmod +x mitc-macos-x64`を実行してから使います。 |
+| `mitc-macos-arm64` | AppleシリコンMac | `chmod +x mitc-macos-arm64`を実行してから使います。 |
+
+持ち運び版は`mitc`（Windowsでは`mitc.exe`）へリネームして、`PATH`上のフォルダーへ置くと便利です。
 
 ### 使い方
 
 引数なしではカレントディレクトリの`LICENSE`へ保存します。既存の`LICENSE`は`y`を入力した場合だけ上書きします。
 
 ```powershell
+# 現在年と保存済み（または既定）のユーザーでLICENSEを作成
 mitc
-mitc -y 2026 -u "Tomoya Ogawa"
-mitc -f LICENSE.txt
-mitc -p
-mitc --set-user "Tomoya Ogawa"
-```
 
-| オプション | 内容 |
-| --- | --- |
-| `-y`, `--year <YEAR>` | 年を指定します（既定：現在年）。 |
-| `-u`, `--user <NAME>` | 今回だけ著作権者名を指定します。 |
-| `--set-user <NAME>` | 既定の著作権者名を保存します。 |
-| `-f`, `--filename <FILE>` | 出力ファイル名を指定します。 |
-| `-p`, `--print` | ファイルへ保存せず標準出力へ表示します。 |
-| `-h`, `--help` | ヘルプを表示します。 |
-| `-v`, `--version` | バージョンを表示します。 |
+# この実行だけ著作権者名と年を指定
+mitc -y 2026 -u "Tomoya Ogawa"
+
+# 既定の著作権者名を保存
+mitc --set-user "Tomoya Ogawa"
+
+# ファイルを作らず画面へ表示
+mitc -p
+```
 
 既定ユーザーは`John Doe`です。`--set-user`で保存すると、ユーザーホームの`.mitc.toml`に設定されます。
 
@@ -120,13 +144,13 @@ user = "Tomoya Ogawa"
 
 ### 開発とリリース
 
-.NET 10 SDKが必要です。
+Go 1.26以降が必要です。
 
 ```powershell
-dotnet build -c Release
-dotnet run -- --print -y 2026 -u "Test User"
+go build ./...
+go test ./...
+go vet ./...
+go run . -p -y 2026 -u "Test User"
 ```
 
-`v1.0.0`のようなタグをpushすると、GitHub Releaseを作成して全プラットフォーム向け成果物を自動添付します。Release名は`mitc v1.0.0`へ自動設定され、.NETとNSISには`1.0.0`が渡されます。
-
-更新履歴は[CHANGELOG.md](CHANGELOG.md)、貢献方法は[CONTRIBUTING.md](CONTRIBUTING.md)を参照してください。
+`v1.0.0`のようなタグをpushすると、GitHub Releaseを自動で作成・更新します。リリース名は`mitc v1.0.0`になり、各OS向けバイナリとWindowsセットアップが添付されます。

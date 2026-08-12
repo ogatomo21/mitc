@@ -2,16 +2,17 @@
 
 ## Overview
 
-`mitc` is a .NET 10 command-line tool that generates the canonical MIT License text.
-It saves to `LICENSE` by default, can print to standard output, and supports saved or one-off copyright holder names.
+`mitc` is a Go command-line tool that generates the canonical MIT License text.
+It writes to `LICENSE` by default, can print to standard output, and supports saved or one-off copyright holder names.
 
 ## Repository layout
 
-- `Program.cs`: CLI argument parsing, configuration handling, and license text generation.
-- `mitc.csproj`: .NET 10 project and single-file publishing defaults.
-- `installer/mitc.nsi`: per-user Windows NSIS installer for the framework-dependent Any CPU distribution.
-- `.github/workflows/ci.yml`: cross-platform build and CLI smoke test.
-- `.github/workflows/release.yml`: release asset publishing.
+- `main.go`: executable entry point and release-version variable.
+- `cli.go`: argument parsing, configuration handling, and license generation.
+- `cli_test.go`: CLI behavior tests.
+- `installer/mitc.nsi`: per-user Windows NSIS installer for the native x64 executable.
+- `.github/workflows/ci.yml`: cross-platform Go build, tests, and smoke test.
+- `.github/workflows/release.yml`: native release asset and installer publishing.
 - `README.md`, `CHANGELOG.md`, `CONTRIBUTING.md`: public project documentation.
 
 ## CLI behavior
@@ -22,38 +23,41 @@ It saves to `LICENSE` by default, can print to standard output, and supports sav
 - `-u` / `--user`: set the copyright holder for one run.
 - `--set-user`: save the default user to `.mitc.toml` in the user's home directory.
 - `-f` / `--filename`: change the output file name.
-- `-v` / `--version`: show the informational version, such as `v1.0`.
+- `-v` / `--version`: show the version; release builds inject the Git tag.
 
 Keep the MIT License wording canonical and preserve the default `John Doe` user.
 
 ## Build and validation
 
-Requires the .NET 10 SDK specified by `global.json`.
+Requires Go 1.26 or later.
 
 ```powershell
-dotnet build mitc.csproj --configuration Release
-dotnet run --project mitc.csproj --configuration Release -- --print --year 2026 --user "Test User"
+go build ./...
+go test ./...
+go run . -p -y 2026 -u "Test User"
 ```
 
-Build a self-contained single Windows executable:
+Build a native Windows x64 executable:
 
 ```powershell
-dotnet publish -c Release -r win-x64 --self-contained true -o .\publish\win-x64
+$env:CGO_ENABLED = '0'
+$env:GOOS = 'windows'
+$env:GOARCH = 'amd64'
+go build -trimpath -ldflags '-s -w -X main.version=v1.0' -o .\publish-win-x64\mitc.exe .
 ```
 
-Build the Any CPU Windows installer after installing NSIS:
+Build the installer after installing NSIS:
 
 ```powershell
-dotnet publish -c Release --self-contained false -p:PublishSingleFile=false -o .\publish-anycpu
 makensis /DPRODUCT_VERSION=1.0 installer\mitc.nsi
 ```
 
-The installer intentionally does not bundle .NET. It installs the Any CPU files under `%LOCALAPPDATA%\mitc`, adds that directory to the user PATH, and removes it on uninstall.
+The installer places `mitc.exe` in `%LOCALAPPDATA%\mitc`, adds that directory to the user PATH, and removes it on uninstall. It does not require or bundle an additional runtime.
 
 ## Releases
 
 Pushing a tag beginning with `v` (for example `v1.0.0`) triggers the release workflow.
-The workflow creates the GitHub Release, sets its title to `mitc v1.0.0`, uses `1.0.0` for .NET and NSIS product versions, and attaches:
+The workflow creates the GitHub Release titled `mitc v1.0.0`, builds native binaries, and attaches:
 
 - `mitc-win-x64.exe`
 - `mitc-win-x86.exe`
@@ -62,4 +66,4 @@ The workflow creates the GitHub Release, sets its title to `mitc v1.0.0`, uses `
 - `mitc-macos-x64`
 - `mitc-macos-arm64`
 
-Do not commit generated `bin/`, `obj/`, `publish/`, `publish-anycpu/`, or installer EXEs.
+Do not commit generated `publish/`, `publish-win-x64/`, `artifacts/`, or installer EXEs.

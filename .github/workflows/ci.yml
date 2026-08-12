@@ -22,19 +22,22 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
 
-      - name: Set up .NET
-        uses: actions/setup-dotnet@v4
+      - name: Set up Go
+        uses: actions/setup-go@v5
         with:
-          dotnet-version: 10.0.x
+          go-version-file: go.mod
 
       - name: Build
-        run: dotnet build mitc.csproj --configuration Release --nologo
+        run: go build ./...
+
+      - name: Test
+        run: go test ./...
 
       - name: Smoke test license output
         shell: pwsh
         run: |
-          $output = dotnet run --project mitc.csproj --configuration Release --no-build -- --print --year 2026 --user "CI"
+          $output = go run . -p -y 2026 -u "CI"
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          if ($output -notcontains "Copyright (c) 2026 CI") {
+          if ($output -notmatch [regex]::Escape("Copyright (c) 2026 CI")) {
             throw "Expected copyright line was not generated."
           }

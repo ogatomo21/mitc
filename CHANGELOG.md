@@ -9,5 +9,5 @@ Initial public release.
 - Generate an MIT License using the current year by default.
 - Support a saved default copyright holder and one-off overrides.
 - Write to `LICENSE` by default, with overwrite confirmation.
-- Provide self-contained single-file binaries for Windows, Linux, and macOS.
-- Provide a Windows Any CPU NSIS installer that requires .NET 10.
+- Provide native standalone binaries for Windows, Linux, and macOS.
+- Provide a Windows x64 NSIS installer with Japanese/English automatic UI selection.

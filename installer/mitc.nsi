@@ -13,7 +13,7 @@ LoadLanguageFile "${NSISDIR}\Contrib\Language files\Japanese.nlf"
 !endif
 
 !define PRODUCT_NAME "mitc"
-!define PUBLISH_DIR "..\publish-anycpu"
+!define PUBLISH_DIR "..\publish-win-x64"
 !define INSTALL_DIR "$LOCALAPPDATA\mitc"
 
 Name "${PRODUCT_NAME} ${PRODUCT_VERSION}"
@@ -43,14 +43,7 @@ Page instfiles
 Section "$(InstallSectionName)" SecInstall
   SetOutPath "$INSTDIR"
   SetOverwrite on
-  File "${PUBLISH_DIR}\mitc.dll"
-  File "${PUBLISH_DIR}\mitc.deps.json"
-  File "${PUBLISH_DIR}\mitc.runtimeconfig.json"
-
-  FileOpen $0 "$INSTDIR\mitc.cmd" w
-  FileWrite $0 "@echo off$\r$\n"
-  FileWrite $0 "dotnet $\"%~dp0mitc.dll$\" %*$\r$\n"
-  FileClose $0
+  File "${PUBLISH_DIR}\mitc.exe"
 
   WriteUninstaller "$INSTDIR\uninstall.exe"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\mitc" "DisplayName" "mitc"
@@ -74,10 +67,7 @@ Section "$(InstallSectionName)" SecInstall
 SectionEnd
 
 Section "Uninstall"
-  Delete "$INSTDIR\mitc.cmd"
-  Delete "$INSTDIR\mitc.dll"
-  Delete "$INSTDIR\mitc.deps.json"
-  Delete "$INSTDIR\mitc.runtimeconfig.json"
+  Delete "$INSTDIR\mitc.exe"
   Delete "$INSTDIR\uninstall.exe"
   RMDir "$INSTDIR"
 

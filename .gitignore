@@ -1,13 +1,10 @@
-bin/
-obj/
 publish/
-publish-anycpu/
-.dotnet/
-.nuget/
-.vs/
-.tools/
+publish-win-x64/
 .mitc-installer-test-*/
 artifacts/
+coverage.out
+mitc
+mitc.exe
 *.user
 *.suo
 mitc-win-setup.exe
