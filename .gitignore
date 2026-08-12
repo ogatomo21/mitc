@@ -1,0 +1,13 @@
+bin/
+obj/
+publish/
+publish-anycpu/
+.dotnet/
+.nuget/
+.vs/
+.tools/
+.mitc-installer-test-*/
+artifacts/
+*.user
+*.suo
+mitc-win-setup.exe

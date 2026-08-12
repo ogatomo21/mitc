@@ -1,0 +1,158 @@
+name: Build release executables
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  prepare-version:
+    name: Validate release version
+    if: startsWith(github.event.release.tag_name, 'v')
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.value }}
+
+    steps:
+      - name: Set release title and derive version from tag
+        id: version
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          version="${RELEASE_TAG#v}"
+          if [[ -z "$version" || "$version" == "$RELEASE_TAG" ]]; then
+            echo "Release tag must start with v, for example v1.0.0." >&2
+            exit 1
+          fi
+
+          if [[ ! "$version" =~ ^[0-9]+(\.[0-9]+){1,3}([-.][0-9A-Za-z.-]+)?$ ]]; then
+            echo "Release tag must use v followed by a .NET-compatible version, for example v1.0.0." >&2
+            exit 1
+          fi
+
+          gh release edit "$RELEASE_TAG" --title "mitc $RELEASE_TAG"
+          echo "value=$version" >> "$GITHUB_OUTPUT"
+
+  build:
+    needs: prepare-version
+    if: needs.prepare-version.result == 'success'
+    name: ${{ matrix.asset }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            rid: win-x64
+            source: mitc.exe
+            asset: mitc-win-x64.exe
+          - os: windows-latest
+            rid: win-x86
+            source: mitc.exe
+            asset: mitc-win-x86.exe
+          - os: ubuntu-latest
+            rid: linux-x64
+            source: mitc
+            asset: mitc-linux-x64
+          - os: macos-latest
+            rid: osx-x64
+            source: mitc
+            asset: mitc-macos-x64
+          - os: macos-latest
+            rid: osx-arm64
+            source: mitc
+            asset: mitc-macos-arm64
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Publish single executable
+        shell: pwsh
+        env:
+          MITC_VERSION: ${{ needs.prepare-version.outputs.version }}
+          MITC_RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: >-
+          dotnet publish mitc.csproj
+          --configuration Release
+          --runtime "${{ matrix.rid }}"
+          --self-contained true
+          "-p:Version=$env:MITC_VERSION"
+          "-p:InformationalVersion=$env:MITC_RELEASE_TAG"
+          --output publish
+
+      - name: Rename release asset
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path artifacts | Out-Null
+          Copy-Item -LiteralPath "publish/${{ matrix.source }}" -Destination "artifacts/${{ matrix.asset }}"
+
+      - name: Upload executable to GitHub Release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >-
+          gh release upload
+          "${{ github.event.release.tag_name }}"
+          "artifacts/${{ matrix.asset }}"
+          --clobber
+
+  windows-anycpu-installer:
+    needs: prepare-version
+    if: needs.prepare-version.result == 'success'
+    name: mitc-win-setup.exe
+    runs-on: windows-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Publish framework-dependent Any CPU files
+        shell: pwsh
+        env:
+          MITC_VERSION: ${{ needs.prepare-version.outputs.version }}
+          MITC_RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: >-
+          dotnet publish mitc.csproj
+          --configuration Release
+          --self-contained false
+          -p:PublishSingleFile=false
+          "-p:Version=$env:MITC_VERSION"
+          "-p:InformationalVersion=$env:MITC_RELEASE_TAG"
+          --output publish-anycpu
+
+      - name: Install NSIS
+        shell: pwsh
+        run: choco install nsis --no-progress --yes
+
+      - name: Build installer
+        shell: pwsh
+        env:
+          MITC_VERSION: ${{ needs.prepare-version.outputs.version }}
+        run: |
+          & 'C:\Program Files (x86)\NSIS\makensis.exe' "/DPRODUCT_VERSION=$env:MITC_VERSION" installer\mitc.nsi
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Upload installer to GitHub Release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >-
+          gh release upload
+          "${{ github.event.release.tag_name }}"
+          installer/mitc-win-setup.exe
+          --clobber

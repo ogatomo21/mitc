@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-smoke-test:
+    name: ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Build
+        run: dotnet build mitc.csproj --configuration Release --nologo
+
+      - name: Smoke test license output
+        shell: pwsh
+        run: |
+          $output = dotnet run --project mitc.csproj --configuration Release --no-build -- --print --year 2026 --user "CI"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          if ($output -notcontains "Copyright (c) 2026 CI") {
+            throw "Expected copyright line was not generated."
+          }
