@@ -38,6 +38,7 @@ jobs:
         run: |
           $output = go run . -p -y 2026 -u "CI"
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          if ($output -notmatch [regex]::Escape("Copyright (c) 2026 CI")) {
+          $outputText = $output -join [Environment]::NewLine
+          if ($outputText -notmatch [regex]::Escape("Copyright (c) 2026 CI")) {
             throw "Expected copyright line was not generated."
           }
