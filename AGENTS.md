@@ -52,8 +52,8 @@ The installer intentionally does not bundle .NET. It installs the Any CPU files 
 
 ## Releases
 
-Publishing a GitHub Release from a tag beginning with `v` (for example `v1.0.0`) triggers the release workflow.
-The workflow sets the Release title to `mitc v1.0.0`, uses `1.0.0` for .NET and NSIS product versions, and attaches:
+Pushing a tag beginning with `v` (for example `v1.0.0`) triggers the release workflow.
+The workflow creates the GitHub Release, sets its title to `mitc v1.0.0`, uses `1.0.0` for .NET and NSIS product versions, and attaches:
 
 - `mitc-win-x64.exe`
 - `mitc-win-x86.exe`

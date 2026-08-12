@@ -70,7 +70,7 @@ makensis /DPRODUCT_VERSION=1.0 installer\mitc.nsi
 
 ## Releases
 
-Publishing a GitHub Release from a `v`-prefixed tag, such as `v1.0.0`, builds and attaches all platform assets automatically. The workflow sets the Release title to `mitc v1.0.0` and uses `1.0.0` for .NET and NSIS product versions.
+Pushing a `v`-prefixed tag, such as `v1.0.0`, creates a GitHub Release and attaches all platform assets automatically. The workflow sets the Release title to `mitc v1.0.0` and uses `1.0.0` for .NET and NSIS product versions.
 
 See [CHANGELOG.md](CHANGELOG.md) for release history and [CONTRIBUTING.md](CONTRIBUTING.md) for contribution guidelines.
 
@@ -127,6 +127,6 @@ dotnet build -c Release
 dotnet run -- --print -y 2026 -u "Test User"
 ```
 
-`v1.0.0`のようなタグでGitHub Releaseを公開すると、全プラットフォーム向け成果物を自動添付します。Release名は`mitc v1.0.0`へ自動設定され、.NETとNSISには`1.0.0`が渡されます。
+`v1.0.0`のようなタグをpushすると、GitHub Releaseを作成して全プラットフォーム向け成果物を自動添付します。Release名は`mitc v1.0.0`へ自動設定され、.NETとNSISには`1.0.0`が渡されます。
 
 更新履歴は[CHANGELOG.md](CHANGELOG.md)、貢献方法は[CONTRIBUTING.md](CONTRIBUTING.md)を参照してください。

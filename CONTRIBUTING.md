@@ -20,5 +20,5 @@ dotnet run -- --print -y 2026 -u "Test User"
 
 ## Release versioning
 
-Publish GitHub Releases from a tag beginning with `v`, such as `v1.0.0`.
-The release workflow removes the `v` for .NET and NSIS product versions, and changes the Release title to `mitc v1.0.0`.
+Push a tag beginning with `v`, such as `v1.0.0`, to create the GitHub Release automatically.
+The release workflow removes the `v` for .NET and NSIS product versions, and sets the Release title to `mitc v1.0.0`.

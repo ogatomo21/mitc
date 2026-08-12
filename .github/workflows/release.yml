@@ -1,8 +1,10 @@
 name: Build release executables
+run-name: Release ${{ github.ref_name }}
 
 on:
-  release:
-    types: [published]
+  push:
+    tags:
+      - 'v*'
 
 permissions:
   contents: write
@@ -10,18 +12,18 @@ permissions:
 jobs:
   prepare-version:
     name: Validate release version
-    if: startsWith(github.event.release.tag_name, 'v')
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.version.outputs.value }}
 
     steps:
-      - name: Set release title and derive version from tag
+      - name: Create release and derive version from tag
         id: version
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
-          RELEASE_TAG: ${{ github.event.release.tag_name }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ github.ref_name }}
         run: |
           version="${RELEASE_TAG#v}"
           if [[ -z "$version" || "$version" == "$RELEASE_TAG" ]]; then
@@ -34,7 +36,11 @@ jobs:
             exit 1
           fi
 
-          gh release edit "$RELEASE_TAG" --title "mitc $RELEASE_TAG"
+          if gh release view "$RELEASE_TAG" --repo "$GH_REPO" > /dev/null 2>&1; then
+            gh release edit "$RELEASE_TAG" --repo "$GH_REPO" --title "mitc $RELEASE_TAG"
+          else
+            gh release create "$RELEASE_TAG" --repo "$GH_REPO" --title "mitc $RELEASE_TAG" --generate-notes
+          fi
           echo "value=$version" >> "$GITHUB_OUTPUT"
 
   build:
@@ -80,7 +86,7 @@ jobs:
         shell: pwsh
         env:
           MITC_VERSION: ${{ needs.prepare-version.outputs.version }}
-          MITC_RELEASE_TAG: ${{ github.event.release.tag_name }}
+          MITC_RELEASE_TAG: ${{ github.ref_name }}
         run: >-
           dotnet publish mitc.csproj
           --configuration Release
@@ -102,7 +108,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: >-
           gh release upload
-          "${{ github.event.release.tag_name }}"
+          "${{ github.ref_name }}"
           "artifacts/${{ matrix.asset }}"
           --clobber
 
@@ -125,7 +131,7 @@ jobs:
         shell: pwsh
         env:
           MITC_VERSION: ${{ needs.prepare-version.outputs.version }}
-          MITC_RELEASE_TAG: ${{ github.event.release.tag_name }}
+          MITC_RELEASE_TAG: ${{ github.ref_name }}
         run: >-
           dotnet publish mitc.csproj
           --configuration Release
@@ -153,6 +159,6 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: >-
           gh release upload
-          "${{ github.event.release.tag_name }}"
+          "${{ github.ref_name }}"
           installer/mitc-win-setup.exe
           --clobber
