@@ -56,7 +56,8 @@ UseDefaultInstallDir:
   StrCpy $INSTDIR $ExistingInstallDir
 
 ChooseExistingInstallAction:
-  MessageBox MB_YESNOCANCEL|MB_ICONQUESTION "$(ExistingInstall)" IDYES ExistingInstallUpdate IDNO ExistingInstallUninstall IDCANCEL ExistingInstallCancel
+  MessageBox MB_YESNOCANCEL|MB_ICONQUESTION "$(ExistingInstall)" IDYES ExistingInstallUpdate IDNO ExistingInstallUninstall
+  Goto ExistingInstallCancel
 
 ExistingInstallUpdate:
   Return
