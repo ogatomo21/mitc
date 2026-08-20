@@ -25,6 +25,9 @@ const (
 	wmSettingChange   = 0x001a
 	smtoAbortIfHung   = 0x0002
 	smtoBlock         = 0x0001
+	// A broadcast waits once per responsive top-level window. Keep this bounded
+	// so a slow application cannot make `mitc path` appear to hang.
+	environmentChangeTimeoutMilliseconds = 200
 )
 
 var (
@@ -258,7 +261,7 @@ func reloadPath() error {
 		0,
 		uintptr(unsafe.Pointer(environment)),
 		smtoAbortIfHung|smtoBlock,
-		5000,
+		environmentChangeTimeoutMilliseconds,
 		uintptr(unsafe.Pointer(&result)),
 	)
 	if ret == 0 {

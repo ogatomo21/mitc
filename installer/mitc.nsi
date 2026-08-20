@@ -130,8 +130,6 @@ Section "$(InstallSectionName)" SecInstall
   ExecWait '"$INSTDIR\mitc.exe" path add' $PathHelperResult
   ${If} $PathHelperResult != 0
     MessageBox MB_ICONEXCLAMATION|MB_OK "$(PathAddFailed)"
-  ${Else}
-    SendMessage ${HWND_BROADCAST} ${WM_SETTINGCHANGE} 0 "STR:Environment" /TIMEOUT=5000
   ${EndIf}
 SectionEnd
 
