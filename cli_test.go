@@ -72,3 +72,33 @@ func TestRejectsInvalidCombinations(t *testing.T) {
 		t.Fatalf("Run() = %d, want 2", code)
 	}
 }
+
+func TestParsesPathCommands(t *testing.T) {
+	for _, test := range []struct {
+		args   []string
+		action pathAction
+	}{
+		{args: []string{"path", "add"}, action: pathActionAdd},
+		{args: []string{"path", "remove"}, action: pathActionRemove},
+	} {
+		opts, err := parseOptions(test.args)
+		if err != nil {
+			t.Fatalf("parseOptions(%q) error = %v", test.args, err)
+		}
+		if opts.pathAction != test.action {
+			t.Fatalf("parseOptions(%q).pathAction = %d, want %d", test.args, opts.pathAction, test.action)
+		}
+	}
+}
+
+func TestRejectsInvalidPathCommands(t *testing.T) {
+	for _, args := range [][]string{
+		{"path"},
+		{"path", "replace"},
+		{"path", "add", "--help"},
+	} {
+		if _, err := parseOptions(args); err == nil {
+			t.Fatalf("parseOptions(%q) unexpectedly succeeded", args)
+		}
+	}
+}

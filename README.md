@@ -20,7 +20,7 @@ Download the appropriate file from [GitHub Releases](https://github.com/ogatomo2
 
 | File | Platform | Notes |
 | --- | --- | --- |
-| `mitc-win-setup.exe` | Windows x64 | Recommended. Adds `mitc` to the current user's `PATH`; Japanese or English is selected automatically. |
+| `mitc-win-setup.exe` | Windows x64 | Recommended. Adds `mitc` to the current user's `PATH`; Japanese or English is selected automatically. Running it again offers update/repair or uninstall. |
 | `mitc-win-x64.exe` | Windows x64 | Portable executable. |
 | `mitc-win-x86.exe` | Windows x86 | Portable executable. |
 | `mitc-linux-x64` | Linux x64 | Make executable with `chmod +x mitc-linux-x64`. |
@@ -39,6 +39,8 @@ mitc [options]
     --set-user <NAME>  Save the default copyright holder
 -f, --filename <FILE>  Change the output file name
 -p, --print            Write to standard output instead of a file
+    path add           Add mitc's executable directory to the Windows user PATH
+    path remove        Remove mitc's executable directory from the Windows user PATH
 -h, --help             Show help
 -v, --version          Show the version
 ```
@@ -55,6 +57,10 @@ mitc --set-user "Tomoya Ogawa"
 
 # Print instead of writing a file.
 mitc -p
+
+# Add or remove the directory containing mitc.exe from the current user's PATH.
+mitc path add
+mitc path remove
 ```
 
 The default user is `John Doe`. `--set-user` saves the value to `~/.mitc.toml` (or `%USERPROFILE%\.mitc.toml` on Windows).
@@ -109,7 +115,7 @@ See [CHANGELOG.md](CHANGELOG.md) for release history, [CONTRIBUTING.md](CONTRIBU
 
 | ファイル | 対象 | 補足 |
 | --- | --- | --- |
-| `mitc-win-setup.exe` | Windows x64 | 推奨。`mitc`を現在のユーザーの`PATH`へ追加します。画面は日本語・英語を自動選択します。 |
+| `mitc-win-setup.exe` | Windows x64 | 推奨。`mitc`を現在のユーザーの`PATH`へ追加します。再実行時は更新（修復）またはアンインストールを選べます。画面は日本語・英語を自動選択します。 |
 | `mitc-win-x64.exe` | Windows x64 | 持ち運び用EXEです。 |
 | `mitc-win-x86.exe` | Windows x86 | 持ち運び用EXEです。 |
 | `mitc-linux-x64` | Linux x64 | `chmod +x mitc-linux-x64`を実行してから使います。 |
@@ -134,6 +140,10 @@ mitc --set-user "Tomoya Ogawa"
 
 # ファイルを作らず画面へ表示
 mitc -p
+
+# mitc.exeのあるディレクトリをユーザーPATHへ追加・削除
+mitc path add
+mitc path remove
 ```
 
 既定ユーザーは`John Doe`です。`--set-user`で保存すると、ユーザーホームの`.mitc.toml`に設定されます。

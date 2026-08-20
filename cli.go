@@ -25,6 +25,7 @@ type options struct {
 	printOnly         bool
 	showHelp          bool
 	showVersion       bool
+	pathAction        pathAction
 }
 
 // Run executes mitc with the supplied streams and returns a process exit code.
@@ -41,6 +42,12 @@ func Run(args []string, in io.Reader, out, errOut io.Writer, version string) int
 	}
 	if opts.showVersion {
 		fmt.Fprintln(out, version)
+		return 0
+	}
+	if opts.pathAction != pathActionNone {
+		if err := runPathCommand(opts.pathAction, out); err != nil {
+			return operationError(errOut, err)
+		}
 		return 0
 	}
 	if opts.userToSave != "" {
@@ -112,6 +119,22 @@ func parseOptions(args []string) (options, error) {
 			return args[i], nil
 		}
 		switch arg {
+		case "path":
+			if i+1 >= len(args) {
+				return opts, errors.New("'path' requires 'add' or 'remove'")
+			}
+			i++
+			switch args[i] {
+			case "add":
+				opts.pathAction = pathActionAdd
+			case "remove":
+				opts.pathAction = pathActionRemove
+			default:
+				return opts, fmt.Errorf("unknown path action '%s'; use 'add' or 'remove'", args[i])
+			}
+			if i+1 < len(args) {
+				return opts, errors.New("path commands cannot be combined with other arguments")
+			}
 		case "-h", "--help":
 			opts.showHelp = true
 		case "-v", "--version":
@@ -354,6 +377,8 @@ Options:
       --set-user <NAME>  Save the default copyright holder
   -f, --filename <FILE>  Change the output file name
   -p, --print            Write the license to standard output only
+      path add           Add mitc's directory to the Windows user PATH
+      path remove        Remove mitc's directory from the Windows user PATH
   -h, --help             Show this help
   -v, --version          Show the version
 

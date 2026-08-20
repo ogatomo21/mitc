@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented in this file.
 
+## Unreleased
+
+- Add `mitc path add` and `mitc path remove` for managing the current user's Windows PATH from the directory containing `mitc.exe`.
+- Make the NSIS installer use `mitc path add` and offer update/repair or uninstall when an existing installation is detected.
+
 ## v1.0
 
 Initial public release.
